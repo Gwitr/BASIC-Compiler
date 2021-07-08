@@ -28,19 +28,19 @@ class Interpreter():
         
         elif node.data == "let":
             name = node.children[0].children[0]
-            if name[-1] not in "%$!":
-                # Variables are float by default
-                name += "!"
+            vartype = node.children[0].data
             expr = self.eval_expr(node.children[1])
-            sym = self.type_to_symbol(type(expr))
-            if name[-1] == "!" and sym == "%":
+            
+            expr_sym = self.type_to_symbol(type(expr))
+            var_sym = self.vartype_to_symbol(vartype)
+            
+            if var_sym == "!" and expr_sym == "%":
                 expr = float(expr)
-            elif name[-1] == "%" and sym == "!":
+            elif var_sym == "%" and expr_sym == "!":
                 expr = int(expr)
-            elif name[-1] != sym:
-                raise InterpreterError("Tried assigning a %s value a variable of type %s" % (sym, name[-1]))
-            # print(name, "=", expr)
-            self.variables[name] = expr
+            elif var_sym != expr_sym:
+                raise InterpreterError("Tried assigning a %s value a variable of type %s" % (expr_sym, var_sym))
+            self.variables[name, vartype] = expr
             self.current_line += 1
         
         elif node.data == "goto":
@@ -111,11 +111,11 @@ class Interpreter():
         
         elif node.data in {"intvar", "floatvar", "strvar"}:
             name = str(node.children[0])
-            if name[-1] not in "!%$":
-                name += "!"
-            if name not in self.variables:
-                raise InterpreterError("Variable %s doesn't exist" % name)
-            return self.variables[name]
+            vartype = node.data
+
+            if (name, vartype) not in self.variables:
+                raise InterpreterError("Variable %s doesn't exist" % (name + self.vartype_to_symbol(vartype)))
+            return self.variables[name, vartype]
         
         else:
             raise NotImplementedError("Node %s" % node.data)
@@ -142,12 +142,15 @@ class Interpreter():
     def type_to_symbol(self, t):
         return {int: "%", float: "!", str: "$"}[t]
 
+    def vartype_to_symbol(self, t):
+        return {"intvar": "%", "floatvar": "!", "strvar": "$"}[t]
+
 if __name__ == "__main__":
     it = Interpreter("""
-let I = 0
+let I% = 0
 loop:
-    print "I = "; I
-    let I = I + 1
+    print "I = "; I%
+    let I% = I% + 1
     goto loop
 """)
     print(it.ast.pretty())
