@@ -10,8 +10,11 @@ program: _NEWLINE* statement (_NEWLINE+ statement)* _NEWLINE+
 // Add new commands here
 ?statement: NAME ":"                       -> label
     | _GOTO NAME                           -> goto
-    | _PRINT expr (PSEP expr)* [PSEP]      -> print
+    | _PRINT expr (psep expr)* [psep]      -> print
+    | _LET variable "=" expr               -> let
 
+
+?psep: COMMA | SEMICOLON
 
 
 // ===== Operators and expressions =====
@@ -53,10 +56,12 @@ QSTR: ESCAPED_STRING     // Lark doesn't remove any special characters :/
 // Note: The ".3" is required so that the parser doesn't parse them as NAME tokens
 _PRINT.3: "print"i
 _GOTO.3:  "goto"i
+_LET.3:   "let"i
 
 // Constant tokens
 _NEWLINE: /\n/
-PSEP:     /,|;/
+COMMA: ","
+SEMICOLON: ";"
 // =====================
 
 // ===== Parser directives =====

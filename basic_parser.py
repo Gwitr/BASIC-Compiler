@@ -1,3 +1,4 @@
+import sys
 import lark
 
 with open("grammar.yy", encoding="utf8") as f:
@@ -15,8 +16,13 @@ with open("grammar.yy", encoding="utf8") as f:
     # Construct the parser
     parser = lark.Lark(data, **kwargs)
 
-print(parser.parse("""
-loop:
-    print "Hello, world!"; CHR$(17 * 2); "abc"; CHR$(32 + 2)
-    goto loop
-""").pretty())
+sys.modules[__name__] = parser
+
+if __name__ == "__main__":
+    print(parser.parse("""
+    let I% = 0
+    loop:
+        print "I =", I%
+        let I% = I% + 1
+        goto loop
+    """).pretty())
